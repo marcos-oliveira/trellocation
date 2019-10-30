@@ -36,8 +36,8 @@ module.exports = {
         const semanas = await trello.getListsFromBoard('538f872d42bdfee638a6b839');
         for (let i = 0; i < semanas.length; i++) {
             let element = semanas[i];
-            const semana = await Semana.findById(element.id);
-            if(semana==null){
+            const semana = await Semana.findOne({id: element.id});
+            if(!semana){
                 const {id, name: nome} = element;
                 const datas = nome.split(" - ");
                 let inicio = null;

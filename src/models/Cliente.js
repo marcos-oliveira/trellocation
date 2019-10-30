@@ -1,6 +1,6 @@
 const { Schema, model } = require('mongoose');
 
-const AtividadeSchema = new Schema({
+const ClienteSchema = new Schema({
   descricao: {
     type: String,
     required: true,
@@ -9,4 +9,4 @@ const AtividadeSchema = new Schema({
   timestamps: true,
 });
 
-module.exports = model('Atividade', AtividadeSchema);
+module.exports = model('Cliente', ClienteSchema);

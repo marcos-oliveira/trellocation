@@ -1,6 +1,34 @@
 const mongoose = require('mongoose');
 
 const Pessoa = mongoose.model('Pessoa');
+const Semana = mongoose.model('Semana');
+const Alocacao = mongoose.model('Alocacao');
+
+const trello = require('../trello/boards');
+
+const tratarTexto = (texto) => {
+    if (texto == null) {
+        return null;
+    }
+    let txtarray = texto.split(' ');
+    if (txtarray.length == 0) {
+        return texto;
+    }
+    if (txtarray.length == 1) {
+        return txtarray[0];
+    }
+    let legenda = texto.split(' ')[0];
+    if (legenda == '[') {
+        legenda = texto.split(' ')[1];
+    } else {
+        legenda = legenda.replace('[', '').replace(']', '');
+    }
+    return legenda;
+}
+
+const obterData = (checklist) => {
+    
+}
 
 module.exports = {
     async index(req, res){
@@ -29,26 +57,48 @@ module.exports = {
         return res.send();
     },
     
-    async sincronizar(req, res){
-        const semanas = await trello.getListsFromBoard('538f872d42bdfee638a6b839');
-        for (let i = 0; i < semanas.length; i++) {
-            let element = semanas[i];
-            const semana = await Semana.findById(element.id);
-            if(semana==null){
-                const {id, name: nome} = element;
-                const datas = nome.split(" - ");
-                let inicio = null;
-                let fim = null;
-                if(datas.length == 2){
-                    let partes = datas[0].split("/");
-                    inicio = new Date(partes[1]+"/"+partes[0]+"/"+partes[2]);
-                    partes = datas[1].split("/");
-                    fim = new Date(partes[1]+"/"+partes[0]+"/"+partes[2]);
+    async sincronizarAlocacoesSemana(req, res){
+        const semanatrello = await trello.getList(req.query.id);
+        if(!semanatrello){
+            return res.send("semana não encontrada");
+        }
+        // console.log('semanatrello', semanatrello);
+        const semana = await Semana.find({id: semanatrello.id});
+        const pessoas = await trello.getCardsFromList(req.query.id);
+        for (let i = 0; i < pessoas.length; i++) {
+            let element = pessoas[i];
+            let pessoa = await Pessoa.findOne({nome: element.name});
+            if(!pessoa){
+                const {name: nome} = element;
+                pessoa = await Pessoa.create({nome});
+            }
+            const checklists = await trello.getChecklistFromCard(element.id);
+            // console.log('checklists do ', pessoa.nome, checklists.length);
+            for (let j = 0; j < checklists.length; j++) {
+                // const dia = obterData(checklists[j]);
+                // console.log('dia', dia);
+
+                const diasemana = checklists[j].name;
+                // console.log('diasemana', diasemana);
+                const alocacaodados = {diasemana, pessoa: pessoa._id, semana: semana._id};
+                // console.log('find', alocacaodados);
+                let alocacao = await Alocacao.findOne(alocacaodados);
+                if(!alocacao){
+                    alocacao = await Alocacao.create(alocacaodados);
                 }
-                await Semana.create({id, nome, inicio, fim});
+                // console.log('alocacaocriada', alocacao);
+                const checkitems = await trello.getCheckitemsFromChecklist(checklists[j].id);
+                let atividades = [];
+                for (let k = 0; k < checkitems.length; k++) {
+                    atividades.push(checkitems[k].name);
+                }
+                // console.log('atividades', atividades);
+                await Alocacao.findByIdAndUpdate(alocacao._id, {atividades}, {new: true});
+
+                // semana.dias.push({ dia: checklist.name, atividades });
             }
         };
-        return res.send(semanas);
+        return res.send(pessoas);
         // const retorno
     }
 };

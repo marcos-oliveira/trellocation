@@ -14,11 +14,7 @@ const SemanaSchema = new Schema({
   },
   fim: {
     type: Schema.Types.Date
-  },
-  dias: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Dia',
-  }]
+  }
 }, {
   timestamps: true,
 });

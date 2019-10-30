@@ -127,18 +127,33 @@ async getChecklistFromCard(cardId){
 },
 
 
- async getChecklist(checklistId){
-    try {
-        const url = client.urlTrello('checklists', checklistId);
-        const { data } = await client.get(url);
+async getChecklist(checklistId){
+   try {
+       const url = client.urlTrello('checklists', checklistId);
+       const { data } = await client.get(url);
 
-        return data;
-    } catch (err) {
-        if (err.response && err.response.status === 404) {
-            return null;
-        }
-        throw err;
-    }
+       return data;
+   } catch (err) {
+       if (err.response && err.response.status === 404) {
+           return null;
+       }
+       throw err;
+   }
+},
+
+
+async getList(listId){
+   try {
+       const url = client.urlTrello('lists', listId);
+       const { data } = await client.get(url);
+
+       return data;
+   } catch (err) {
+       if (err.response && err.response.status === 404) {
+           return null;
+       }
+       throw err;
+   }
 },
 
 

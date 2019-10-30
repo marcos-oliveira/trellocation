@@ -1,18 +1,28 @@
 const { Schema, model } = require('mongoose');
 
 const AlocacaoSchema = new Schema({
-  dia: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Dia',
-  }],
-  pessoa: [{
+  dia: {
+    type: Schema.Types.Date
+  },
+  diasemana: {
+    type: Schema.Types.String
+  },
+  pessoa: {
     type: Schema.Types.ObjectId,
     ref: 'Pessoa',
-  }],
-  atividade: [{
+  },
+  semana: {
     type: Schema.Types.ObjectId,
-    ref: 'Atividade',
-  }],
+    ref: 'Semana',
+  },
+  cliente: {
+    type: Schema.Types.ObjectId,
+    ref: 'Cliente',
+  },
+  atividades: [{
+      type: String
+    }
+  ],
 }, {
   timestamps: true,
 });
