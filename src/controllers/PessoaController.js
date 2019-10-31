@@ -6,34 +6,10 @@ const Alocacao = mongoose.model('Alocacao');
 
 const trello = require('../trello/boards');
 
-const tratarTexto = (texto) => {
-    if (texto == null) {
-        return null;
-    }
-    let txtarray = texto.split(' ');
-    if (txtarray.length == 0) {
-        return texto;
-    }
-    if (txtarray.length == 1) {
-        return txtarray[0];
-    }
-    let legenda = texto.split(' ')[0];
-    if (legenda == '[') {
-        legenda = texto.split(' ')[1];
-    } else {
-        legenda = legenda.replace('[', '').replace(']', '');
-    }
-    return legenda;
-}
-
-const obterData = (checklist) => {
-    
-}
-
 module.exports = {
     async index(req, res){
         const {page = 1} = req.query;//req.query para parâmetros get
-        const pessoas = await Pessoa.paginate({}, {page, limit: 10});
+        const pessoas = await Pessoa.find({});
         return res.json(pessoas);
     },
 
@@ -63,7 +39,8 @@ module.exports = {
             return res.send("semana não encontrada");
         }
         // console.log('semanatrello', semanatrello);
-        const semana = await Semana.find({id: semanatrello.id});
+        const semana = await Semana.findOne({id: semanatrello.id});
+
         const pessoas = await trello.getCardsFromList(req.query.id);
         for (let i = 0; i < pessoas.length; i++) {
             let element = pessoas[i];
