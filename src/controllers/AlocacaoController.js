@@ -43,7 +43,7 @@ module.exports = {
 
             for (let i = 0; i < todassemanas.length; i++) {
                 let semana = todassemanas[i];
-                let umasemana = {nome: semana.nome, dias: []};
+                let umasemana = {nome: semana.nome, id: semana.id, dias: []};
                 const alocacoes = await Alocacao.find({pessoa: pessoa._id, semana: semana._id});
                 console.log('find ->', {pessoa: pessoa._id, semana: semana._id}, 'lenght', alocacoes.length);
                 for (let j = 0; j < alocacoes.length; j++) {
