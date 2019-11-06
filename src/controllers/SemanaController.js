@@ -8,7 +8,7 @@ module.exports = {
     async index(req, res){
         const {page = 1} = req.query;//req.query para parâmetros get
         // const semanas = await Semana.paginate({}, {page, limit: 10});
-        const semanas = await Semana.find({});
+        const semanas = await Semana.find({}, null, {sort: '-inicio'});
         return res.json(semanas);
     },
 

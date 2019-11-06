@@ -63,4 +63,10 @@ module.exports = {
         const alocacoes = await Alocacao.find({});
         return res.json(alocacoes);
     },
+
+    async alocacoessemana(req, res){
+        const alocacoes = await Alocacao.find({semana: req.query.id});
+        console.log(req.query.id);
+        return res.json(alocacoes);
+    },
 };

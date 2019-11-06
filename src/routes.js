@@ -13,8 +13,10 @@ routes.get('/pessoas/:id', PessoaController.show);
 
 routes.get('/sincronizarsemanas', SemanaController.sincronizar);
 routes.get('/sincronizaralocacoes', PessoaController.sincronizarAlocacoesSemana);
+// routes.get('/sincronizartodasalocacoes', PessoaController.sincronizarTodasAlocacoes);
 
 routes.get('/alocacoes', AlocacaoController.index);
+routes.get('/alocacoessemana', AlocacaoController.alocacoessemana);
 routes.get('/alocacoestabela', AlocacaoController.alocacoes);
 
 module.exports = routes;
