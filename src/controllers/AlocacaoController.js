@@ -45,12 +45,10 @@ module.exports = {
                 let semana = todassemanas[i];
                 let umasemana = {nome: semana.nome, id: semana.id, dias: []};
                 const alocacoes = await Alocacao.find({pessoa: pessoa._id, semana: semana._id});
-                console.log('find ->', {pessoa: pessoa._id, semana: semana._id}, 'lenght', alocacoes.length);
                 for (let j = 0; j < alocacoes.length; j++) {
                     let umaalocacao = alocacoes[j];
                     umasemana.dias.push({dia: umaalocacao.diasemana, atividades: umaalocacao.atividades});
                 }
-                console.log('alocacao.semanas',alocacao.semanas);
                 alocacao.semanas.push(umasemana);
             }
             alocacoes.push(alocacao);
@@ -66,7 +64,6 @@ module.exports = {
 
     async alocacoessemana(req, res){
         const alocacoes = await Alocacao.find({semana: req.query.id});
-        console.log(req.query.id);
         return res.json(alocacoes);
     },
 };

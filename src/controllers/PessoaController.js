@@ -32,7 +32,7 @@ const sincronizar = async (semana, apenasnovas = false) => {
                 nova = true;
             }
             // console.log('alocacaocriada', alocacao);
-            console.log('alocacaodados', alocacaodados);
+            // console.log('alocacaodados', alocacaodados);
             if ((apenasnovas && nova) || (!apenasnovas)) {
                 const checkitems = await trello.getCheckitemsFromChecklist(checklists[j].id);
                 let atividades = [];
@@ -41,7 +41,7 @@ const sincronizar = async (semana, apenasnovas = false) => {
                 }
                 // console.log('atividades', atividades);
                 await Alocacao.findByIdAndUpdate(alocacao._id, { atividades }, { new: true });
-                console.log('incluindo');
+                // console.log('incluindo');
             }
 
             // semana.dias.push({ dia: checklist.name, atividades });
@@ -83,9 +83,7 @@ module.exports = {
         // }
         // console.log('semanatrello', semanatrello);
         const semana = await Semana.findOne({ id: req.query.id });
-        console.log('sincronizar semana: ', semana);
         await sincronizar(semana, req.query.apenasnovas);
-        console.log('pronto');
         return res.send('OK');
         // const retorno
     },
@@ -95,7 +93,7 @@ module.exports = {
         const semanas = await Semana.find({});
         for (let s = 0; s < semanas.length; s++) {
             let semana = semanas[s];
-            await this.sincronizar(semana);
+            await sincronizar(semana, true);
         }
         return res.send('OK');
         // const retorno

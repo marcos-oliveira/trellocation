@@ -5,6 +5,10 @@ const ClienteSchema = new Schema({
     type: String,
     required: true,
   },
+  cor: {
+    type: String,
+    required: true,
+  }
 }, {
   timestamps: true,
 });

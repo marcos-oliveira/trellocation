@@ -4,13 +4,20 @@ const Cliente = mongoose.model('Cliente');
 
 module.exports = {
     async index(req, res){
-        const {page = 1} = req.query;//req.query para parâmetros get
-        const clientes = await Cliente.paginate({}, {page, limit: 10});
+        const clientes = await Cliente.find({});
         return res.json(clientes);
     },
 
     async store(req, res){
-        const cliente = await Cliente.create(req.body);
+        let dados = req.body;
+        let cliente = await Cliente.findOne({descricao: dados.descricao});
+        if(!cliente){
+            cliente = await Cliente.create(dados);
+            console.log('create', dados);
+        }else{
+            console.log('updade', dados);
+            cliente = await Cliente.findByIdAndUpdate(cliente._id, dados, {new: true});
+        }
         return res.json(cliente);
     },
 
