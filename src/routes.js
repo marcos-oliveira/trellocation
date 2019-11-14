@@ -22,5 +22,6 @@ routes.get('/alocacoestabela', AlocacaoController.alocacoes);
 
 routes.get('/clientes', ClienteController.index);
 routes.post('/clientes/salvar', ClienteController.store);
+routes.post('/clientes/salvarlista', ClienteController.save);
 
 module.exports = routes;

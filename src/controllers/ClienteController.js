@@ -21,6 +21,17 @@ module.exports = {
         return res.json(cliente);
     },
 
+    async save(req, res){
+        let dados = req.body;
+        console.log('salvar', dados);
+        for (let j = 0; j < dados.length; j++) {
+            req.body.descricao = dados[j].descricao;
+            req.body.cor = dados[j].cor;
+            this.store(req, res);
+        }
+        return this.index;
+    },
+
     async show(req, res){
         const cliente = await Cliente.findById(req.params.id);
         return res.json(cliente);
