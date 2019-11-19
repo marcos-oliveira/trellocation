@@ -2,6 +2,25 @@ const mongoose = require('mongoose');
 
 const Cliente = mongoose.model('Cliente');
 
+const salvar = async (dadoscli) => {
+    console.log('salvar', dadoscli);
+    let {descricao, cor} = dadoscli;
+    let dados = {descricao, cor};
+    let cliente = null;
+    if(dadoscli._id){
+        cliente = await Cliente.findOne({_id: dadoscli._id});
+    }
+    if(!cliente){
+        cliente = await Cliente.findOne({descricao: dadoscli.descricao});
+    }
+    if(!cliente){
+        cliente = await Cliente.create(dados);
+    }else{
+        cliente = await Cliente.findByIdAndUpdate(cliente._id, dados, {new: true});
+    }
+    return cliente;
+}
+
 module.exports = {
     async index(req, res){
         const clientes = await Cliente.find({});
@@ -10,26 +29,17 @@ module.exports = {
 
     async store(req, res){
         let dados = req.body;
-        let cliente = await Cliente.findOne({descricao: dados.descricao});
-        if(!cliente){
-            cliente = await Cliente.create(dados);
-            console.log('create', dados);
-        }else{
-            console.log('updade', dados);
-            cliente = await Cliente.findByIdAndUpdate(cliente._id, dados, {new: true});
-        }
+        let cliente = await salvar(dados);
         return res.json(cliente);
     },
 
     async save(req, res){
-        let dados = req.body;
-        console.log('salvar', dados);
+        let dados = req.body.params.clientes;
         for (let j = 0; j < dados.length; j++) {
-            req.body.descricao = dados[j].descricao;
-            req.body.cor = dados[j].cor;
-            this.store(req, res);
+            await salvar(dados[j]);
         }
-        return this.index;
+        const clientes = await Cliente.find({});
+        return res.json(clientes);
     },
 
     async show(req, res){
