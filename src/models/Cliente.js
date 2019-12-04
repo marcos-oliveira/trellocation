@@ -7,8 +7,12 @@ const ClienteSchema = new Schema({
   },
   cor: {
     type: String,
+    default: '#FFF',
     required: true,
-  }
+  },
+  legenda: {
+    type: String,
+  },
 }, {
   timestamps: true,
 });

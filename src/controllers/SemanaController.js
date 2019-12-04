@@ -31,7 +31,7 @@ module.exports = {
         const semana = await Semana.findByIdAndDelete(req.params.id);
         return res.send();
     },
-    
+    //TODO SALVAR CLIENTE NA SINCRONIZACAO E TESTAR
     async sincronizar(req, res){
         const semanas = await trello.getListsFromBoard('538f872d42bdfee638a6b839');
         for (let i = 0; i < semanas.length; i++) {

@@ -19,9 +19,12 @@ routes.get('/sincronizartodasalocacoes', PessoaController.sincronizarTodasAlocac
 routes.get('/alocacoes', AlocacaoController.index);
 routes.get('/alocacoessemana', AlocacaoController.alocacoessemana);
 routes.get('/alocacoestabela', AlocacaoController.alocacoes);
+routes.get('/alocacoestabelanew', AlocacaoController.alocacoesnew);
 
 routes.get('/clientes', ClienteController.index);
 routes.post('/clientes/salvar', ClienteController.store);
 routes.post('/clientes/salvarlista', ClienteController.save);
+
+routes.post('/resumo', AlocacaoController.resumo);
 
 module.exports = routes;
