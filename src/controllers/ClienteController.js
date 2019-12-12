@@ -1,6 +1,25 @@
 const mongoose = require('mongoose');
 
 const Cliente = mongoose.model('Cliente');
+const ClienteTag = mongoose.model('ClienteTag');
+
+const inicializar = async () => {
+    const clientes_ini = [
+        {descricao: 'D3', legenda: 'A'},
+        {descricao: 'MRV', legenda: 'T'},
+        {descricao: 'BP', legenda: 'G'},
+        {descricao: 'FOLGA', legenda: '-'},
+        {descricao: 'DISPONÍVEL', legenda: '!'}
+
+    ];
+    Cliente.insertMany(clientes_ini);
+    let cliente = await Cliente.create({descricao: 'FÉRIAS', legenda: '#'});
+    ClienteTag.create({descricao: 'FERIAS', cliente});
+    cliente = await Cliente.create({descricao: 'LICENÇA', legenda: ';'});
+    ClienteTag.create({descricao: 'LICENCA', cliente});
+    ClienteTag.create({descricao: 'ATESTADO', cliente});
+    ClienteTag.create({descricao: 'MÉDICO', cliente});
+}
 
 const salvar = async (dadoscli) => {
     console.log('salvar', dadoscli);
@@ -27,6 +46,10 @@ module.exports = {
         return res.json(clientes);
     },
 
+    async formatar(req, res) {
+        const alocacoes = await Alocacao.deleteMany({});
+        return res.json(alocacoes);
+    },
     async store(req, res){
         let dados = req.body;
         let cliente = await salvar(dados);
@@ -55,5 +78,15 @@ module.exports = {
     async destroy(req, res){
         const cliente = await Cliente.findByIdAndDelete(req.params.id);
         return res.send();
-    }
+    },
+
+    async inicializar(req, res){
+        const clientes = await inicializar();
+        return res.send(clientes);
+    },
+
+    async formatar(req, res) {
+        const cli = await Cliente.deleteMany({});
+        return res.json(cli);
+    },
 };

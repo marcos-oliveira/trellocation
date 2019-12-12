@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Pessoa = mongoose.model('Pessoa');
 const Semana = mongoose.model('Semana');
 const Alocacao = mongoose.model('Alocacao');
+const ClienteTag = mongoose.model('ClienteTag');
 const Cliente = mongoose.model('Cliente');
 
 const trello = require('../trello/boards');
@@ -49,9 +50,9 @@ const resumoatividades = (atividades) => {
             contagem[atividades[index]]++;
         }
     }
-    var atividadesfiltered = atividades.filter(function(item, pos){
+    var atividadesfiltered = atividades.filter(function (item, pos) {
         return atividades.indexOf(item) == pos;
-      });
+    });
 
     let maior = atividadesfiltered[0];
     for (let index = 1; index < atividadesfiltered.length; index++) {
@@ -67,15 +68,80 @@ const resumoatividades = (atividades) => {
     return maior;
 }
 
-const obterAtividadesDia = (dia, dias, tratatexto=true) =>{
+const buscarTag = (tagscli, atividades) => {
+    if (tagscli == null || tagscli.length == 0) {
+        return null;
+    }
+    if (atividades == null || atividades.length == 0) {
+        return null;
+    }
+    let contagem = [];
+    if (atividades.length > 0) {
+        for (let t = 0; t < tagscli.length; t++) {
+            contagem[tagscli[t].descricao] = 0;
+            for (let index = 0; index < atividades.length; index++) {
+                if(atividades[index].includes(tagscli[t].descricao)){
+                    contagem[tagscli[t].descricao]++;
+                }
+            }
+        }
+    }
+
+    let maior = tagscli[0];
+    for (let index = 1; index < tagscli.length; index++) {
+        if (contagem[tagscli[index].descricao] > contagem[maior.descricao]) {
+            maior = tagscli[index];
+        } else {
+            if (contagem[tagscli[index].descricao] == contagem[maior.descricao] && 'D3' != maior.descricao.toUpperCase()) {
+                maior = tagscli[index];
+            }
+        }
+
+    }
+    return maior;
+}
+
+const buscarCli = (clientes, atividades) => {
+    if (atividades == null || atividades.length == 0) {
+        return null;
+    }
+    let contagem = [];
+    if (atividades.length > 0) {
+        for (let t = 0; t < clientes.length; t++) {
+            contagem[clientes[t].descricao] = 0;
+            for (let index = 0; index < atividades.length; index++) {
+                if(atividades[index].toUpperCase().includes(clientes[t].descricao)){
+                    contagem[clientes[t].descricao]++;
+                }
+            }
+        }
+    }
+
+    // console.log('vetor contagem', contagem);
+    let maior = clientes[0];
+    for (let index = 1; index < clientes.length; index++) {
+        if (contagem[clientes[index].descricao] > contagem[maior.descricao]) {
+            maior = clientes[index];
+        } else {
+            if (contagem[clientes[index].descricao] == contagem[maior.descricao] && 'D3' != maior.descricao.toUpperCase()) {
+                maior = clientes[index];
+            }
+        }
+
+    }
+    return maior;
+}
+
+
+const obterAtividadesDia = (dia, dias, tratatexto = true) => {
     for (let i = 0; i < dias.length; i++) {
         let element = dias[i];
-        if(valores[dia].includes(element.dia.toUpperCase().substring(0, 3))){
+        if (valores[dia].includes(element.dia.toUpperCase().substring(0, 3))) {
             let atividadestratadas = [];
             for (let index = 0; index < element.atividades.length; index++) {
-                if(tratatexto){
+                if (tratatexto) {
                     atividadestratadas.push(tratarTexto(element.atividades[index]));
-                }else{
+                } else {
                     atividadestratadas.push(element.atividades[index]);
                 }
             }
@@ -88,6 +154,8 @@ const obterAtividadesDia = (dia, dias, tratatexto=true) =>{
 
 const sincronizar = async (semana, apenasnovas = false) => {
     const pessoas = await trello.getCardsFromList(semana.id);
+    const tagscli = await ClienteTag.find({});
+    const clientes = await Cliente.find({});
     for (let i = 0; i < pessoas.length; i++) {
         let element = pessoas[i];
         let pessoa = await Pessoa.findOne({ nome: element.name });
@@ -116,22 +184,40 @@ const sincronizar = async (semana, apenasnovas = false) => {
             if ((apenasnovas && nova) || (!apenasnovas)) {
                 const checkitems = await trello.getCheckitemsFromChecklist(checklists[j].id);
                 let atividades = [];
-                let atividadestags = [];
+                // let atividadestags = [];
                 for (let k = 0; k < checkitems.length; k++) {
                     atividades.push(checkitems[k].name);
-                    atividadestags.push(tratarTexto(checkitems[k].name));
+                    // atividadestags.push(tratarTexto(checkitems[k].name));
                 }
-                let clientestr = resumoatividades(atividadestags);
-                console.log("resumo", clientestr);
-                let clidados = {descricao: clientestr};
-                let cliente = await Cliente.findOne( {descricao: { $regex: new RegExp("^" + clientestr, "i") }} );
-                if(!cliente && clientestr!=''){
-                    console.log("novo cliente", clidados);
-                    cliente = await Cliente.create(clidados);
+                // let clientestr = resumoatividades(atividadestags);
+                // console.log('ATIVIDADES', atividades);
+                if (clientes != null || clientes.length >= 0) {
+                    let cliente = buscarCli(clientes, atividades);
+                    if(cliente){
+                        // console.log('achou cliente direto', cliente);
+                        await Alocacao.findByIdAndUpdate(alocacao._id, { atividades, cliente }, { new: true });
+                    }else{
+                        let clientetag = buscarTag(tagscli, atividades);
+                        // let clidados = {descricao: clientestr};
+                        // clientetag = await ClienteTag.findOne( {descricao: { $regex: new RegExp("^" + clientestr, "i") }} );
+                        // if(!clientetag && clientestr!=''){
+                        //     let cliente = await Cliente.findOne( {descricao: { $regex: new RegExp("^" + clientestr, "i") }} );
+                        //     if(cliente){
+                        //         clidados.cliente = cliente;
+                        //     }
+                        //     clientetag = await ClienteTag.create(clidados);
+                        // }
+                        // console.log('atividades', atividades);
+                        if(clientetag){
+                            console.log('procurou nas tags e achou', clientetag);
+                            await Alocacao.findByIdAndUpdate(alocacao._id, { atividades, cliente: clientetag.cliente }, { new: true });
+                        }else{
+                            console.log('procurou nas tags e não achou', clientetag);
+                            await Alocacao.findByIdAndUpdate(alocacao._id, { atividades }, { new: true });
+                        }
+                        // console.log('incluindo');
+                    }
                 }
-                // console.log('atividades', atividades);
-                await Alocacao.findByIdAndUpdate(alocacao._id, { atividades, cliente }, { new: true });
-                // console.log('incluindo');
             }
 
             // semana.dias.push({ dia: checklist.name, atividades });
@@ -173,9 +259,7 @@ module.exports = {
         // }
         // console.log('semanatrello', semanatrello);
         let todas = await Semana.find();
-        console.log("filtro", { id: req.query.id });
         const semana = await Semana.findOne({ id: req.query.id });
-        console.log(semana);
         await sincronizar(semana, req.query.apenasnovas);
         return res.send('OK');
         // const retorno

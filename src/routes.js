@@ -24,7 +24,10 @@ routes.get('/alocacoestabelanew', AlocacaoController.alocacoesnew);
 routes.get('/clientes', ClienteController.index);
 routes.post('/clientes/salvar', ClienteController.store);
 routes.post('/clientes/salvarlista', ClienteController.save);
+routes.post('/clientes/inicializar', ClienteController.inicializar);
+routes.post('/clientes/formatar', ClienteController.formatar);
 
-routes.post('/resumo', AlocacaoController.resumo);
+routes.get('/resumo', AlocacaoController.resumo);
+routes.post('/formatar', AlocacaoController.formatar);
 
 module.exports = routes;
