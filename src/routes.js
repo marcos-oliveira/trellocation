@@ -27,6 +27,9 @@ routes.post('/clientes/salvarlista', ClienteController.save);
 routes.post('/clientes/inicializar', ClienteController.inicializar);
 routes.post('/clientes/formatar', ClienteController.formatar);
 
+routes.post('/clientes/salvartag', ClienteController.storetag);
+routes.get('/clientes/indextags', ClienteController.indextags);
+
 routes.get('/resumo', AlocacaoController.resumo);
 routes.post('/formatar', AlocacaoController.formatar);
 

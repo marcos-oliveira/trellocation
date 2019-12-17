@@ -7,7 +7,13 @@ const inicializar = async () => {
     const clientes_ini = [
         {descricao: 'D3', legenda: 'A'},
         {descricao: 'MRV', legenda: 'T'},
-        {descricao: 'BP', legenda: 'G'},
+        {descricao: 'NUBANK', legenda: 'I'},
+        {descricao: 'CVC', legenda: 'X'},
+        {descricao: 'ZAG', legenda: 'B'},
+        {descricao: 'AURA', legenda: 'C'},
+        {descricao: 'MESA e CADEIRA', legenda: 'E'},
+        {descricao: 'MESA e CADEIRA', legenda: 'S'},
+        {descricao: 'KYW', legenda: 'D'},
         {descricao: 'FOLGA', legenda: '-'},
         {descricao: 'DISPONÍVEL', legenda: '!'}
 
@@ -19,12 +25,16 @@ const inicializar = async () => {
     ClienteTag.create({descricao: 'LICENCA', cliente});
     ClienteTag.create({descricao: 'ATESTADO', cliente});
     ClienteTag.create({descricao: 'MÉDICO', cliente});
+    cliente = await Cliente.create({descricao: 'BP', legenda: 'G'});
+    ClienteTag.create({descricao: 'BRASIL', cliente});
+    ClienteTag.create({descricao: 'BB', cliente});
+    ClienteTag.create({descricao: 'PREV', cliente});
 }
 
-const salvar = async (dadoscli) => {
-    console.log('salvar', dadoscli);
-    let {descricao, cor} = dadoscli;
-    let dados = {descricao, cor};
+const salvar = async (dadoscli) => {alvar
+    console.log('salvar', dadoscli);alvar
+    let {descricao, cor} = dadoscli;alvar
+    let dados = {descricao, cor};alvar
     let cliente = null;
     if(dadoscli._id){
         cliente = await Cliente.findOne({_id: dadoscli._id});
@@ -54,6 +64,18 @@ module.exports = {
         let dados = req.body;
         let cliente = await salvar(dados);
         return res.json(cliente);
+    },
+    
+    async storetag(req, res){
+        let dados = req.body;
+        let cliente = await Cliente.findById(dados.cliente);
+        cliente = ClienteTag.create({descricao: dados.descricao, cliente});
+        return res.json(cliente);
+    },
+
+    async indextags(req, res){
+        const clientes = await ClienteTag.find({});
+        return res.json(clientes);
     },
 
     async save(req, res){
@@ -86,6 +108,7 @@ module.exports = {
     },
 
     async formatar(req, res) {
+        const cli = await ClienteTag.deleteMany({});
         const cli = await Cliente.deleteMany({});
         return res.json(cli);
     },
