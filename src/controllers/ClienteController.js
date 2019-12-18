@@ -108,8 +108,8 @@ module.exports = {
     },
 
     async formatar(req, res) {
-        const cli = await ClienteTag.deleteMany({});
-        const cli = await Cliente.deleteMany({});
+        let cli = await ClienteTag.deleteMany({});
+        cli = await Cliente.deleteMany({});
         return res.json(cli);
     },
 };
