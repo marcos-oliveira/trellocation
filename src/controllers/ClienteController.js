@@ -31,10 +31,10 @@ const inicializar = async () => {
     ClienteTag.create({descricao: 'PREV', cliente});
 }
 
-const salvar = async (dadoscli) => {alvar
-    console.log('salvar', dadoscli);alvar
-    let {descricao, cor} = dadoscli;alvar
-    let dados = {descricao, cor};alvar
+const salvar = async (dadoscli) => {
+    console.log('salvar', dadoscli);
+    let {descricao, cor} = dadoscli;
+    let dados = {descricao, cor};
     let cliente = null;
     if(dadoscli._id){
         cliente = await Cliente.findOne({_id: dadoscli._id});
