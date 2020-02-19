@@ -5,27 +5,28 @@ const ClienteTag = mongoose.model('ClienteTag');
 
 const inicializar = async () => {
     const clientes_ini = [
-        {descricao: 'D3', legenda: 'A'},
-        {descricao: 'MRV', legenda: 'T'},
-        {descricao: 'NUBANK', legenda: 'I'},
-        {descricao: 'CVC', legenda: 'X'},
-        {descricao: 'ZAG', legenda: 'B'},
-        {descricao: 'AURA', legenda: 'C'},
-        {descricao: 'MESA e CADEIRA', legenda: 'E'},
-        {descricao: 'MESA e CADEIRA', legenda: 'S'},
-        {descricao: 'KYW', legenda: 'D'},
-        {descricao: 'FOLGA', legenda: '-'},
-        {descricao: 'DISPONÍVEL', legenda: '!'}
+        {descricao: 'D3', legenda: 'A', cor: '000000'},
+        {descricao: 'MRV', legenda: 'T', cor: '8b572a'},
+        {descricao: 'NUBANK', legenda: 'I', cor: '9013fe'},
+        {descricao: 'CVC', legenda: 'X', cor: 'f8e71c'},
+        {descricao: 'ZAG', legenda: 'B', cor: '2f5501'},
+        {descricao: 'AURA', legenda: 'C', cor: '5fa60e'},
+        {descricao: 'MESA', legenda: 'E', cor: 'f8f091'},
+        {descricao: 'MESA e CADEIRA', legenda: 'S', cor: '580c6b'},
+        {descricao: 'KYW', legenda: 'D', cor: '053165'},
+        {descricao: 'FOLGA', legenda: '-', cor: 'eaeaea'},
+        {descricao: 'DISPONÍVEL', legenda: '!', cor: 'eaeaea'}
 
     ];
     Cliente.insertMany(clientes_ini);
-    let cliente = await Cliente.create({descricao: 'FÉRIAS', legenda: '#'});
+    let cliente = await Cliente.create({descricao: 'FÉRIAS', legenda: '#', cor: 'eaeaea'});
     ClienteTag.create({descricao: 'FERIAS', cliente});
-    cliente = await Cliente.create({descricao: 'LICENÇA', legenda: ';'});
+    ClienteTag.create({descricao: 'FERIADO', cliente});
+    cliente = await Cliente.create({descricao: 'LICENÇA', legenda: ';', cor: 'eaeaea'});
     ClienteTag.create({descricao: 'LICENCA', cliente});
     ClienteTag.create({descricao: 'ATESTADO', cliente});
     ClienteTag.create({descricao: 'MÉDICO', cliente});
-    cliente = await Cliente.create({descricao: 'BP', legenda: 'G'});
+    cliente = await Cliente.create({descricao: 'BP', legenda: 'G', cor: 'c99af2'});
     ClienteTag.create({descricao: 'BRASIL', cliente});
     ClienteTag.create({descricao: 'BB', cliente});
     ClienteTag.create({descricao: 'PREV', cliente});
@@ -68,7 +69,7 @@ module.exports = {
     
     async storetag(req, res){
         let dados = req.body;
-        let cliente = await Cliente.findById(dados.cliente);
+        let cliente = await findById(dados.cliente);
         cliente = ClienteTag.create({descricao: dados.descricao, cliente});
         return res.json(cliente);
     },
@@ -106,7 +107,6 @@ module.exports = {
         const clientes = await inicializar();
         return res.send(clientes);
     },
-
     async formatar(req, res) {
         let cli = await ClienteTag.deleteMany({});
         cli = await Cliente.deleteMany({});

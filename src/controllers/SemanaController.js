@@ -6,9 +6,16 @@ const trello = require('../trello/boards');
 
 module.exports = {
     async index(req, res){
-        const {page = 1} = req.query;//req.query para parâmetros get
-        // const semanas = await Semana.paginate({}, {page, limit: 10});
-        const semanas = await Semana.find({}, null, {sort: '-inicio'});
+        const semanas = await Semana.find({}, {sort: '-inicio'});
+        // const semanas = await Semana.find({}, {sort: '-inicio'});
+        return res.json(semanas);
+    },
+    async indexpaginado(req, res){
+        let {page = 1, limit = 4} = req.params;//req.query para parâmetros get
+        page = parseInt(page);
+        limit = parseInt(limit);
+        const semanas = await Semana.paginate({}, {page, limit, sort: '-inicio'});
+        // const semanas = await Semana.find({}, {sort: '-inicio'});
         return res.json(semanas);
     },
 

@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate');
 
 const SemanaSchema = new Schema({
   id: {
@@ -19,4 +20,5 @@ const SemanaSchema = new Schema({
   timestamps: true,
 });
 
+SemanaSchema.plugin(mongoosePaginate);
 module.exports = model('Semana', SemanaSchema);

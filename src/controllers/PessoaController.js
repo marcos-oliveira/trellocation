@@ -8,7 +8,7 @@ const Cliente = mongoose.model('Cliente');
 
 const trello = require('../trello/boards');
 
-
+let execution = false;
 
 const tratarTexto = (texto) => {
     if (texto == null) {
@@ -33,6 +33,18 @@ const tratarTexto = (texto) => {
 
     str = str.toString().replace('[', '').replace(']', '').replace('_', '').replace('`', '').replace('.', '').replace('-', '').split('*').join('').toUpperCase();
     return str;
+}
+
+
+const tratarNome = (texto) => {
+    if (texto == null || texto.length == 0) {
+        return '';
+    }
+    let retorno = texto.replace(/[^A-Za-záàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ ]/, '');
+    if (retorno.length == texto.length) {
+        return texto.trim();
+    }
+    return tratarNome(retorno);
 }
 
 const resumoatividades = (atividades) => {
@@ -80,7 +92,7 @@ const buscarTag = (tagscli, atividades) => {
         for (let t = 0; t < tagscli.length; t++) {
             contagem[tagscli[t].descricao] = 0;
             for (let index = 0; index < atividades.length; index++) {
-                if(atividades[index].includes(tagscli[t].descricao)){
+                if (atividades[index].includes(tagscli[t].descricao)) {
                     contagem[tagscli[t].descricao]++;
                 }
             }
@@ -98,6 +110,9 @@ const buscarTag = (tagscli, atividades) => {
         }
 
     }
+    if (contagem[maior.descricao] == 0) {
+        return null;
+    }
     return maior;
 }
 
@@ -110,14 +125,13 @@ const buscarCli = (clientes, atividades) => {
         for (let t = 0; t < clientes.length; t++) {
             contagem[clientes[t].descricao] = 0;
             for (let index = 0; index < atividades.length; index++) {
-                if(atividades[index].toUpperCase().includes(clientes[t].descricao)){
+                if (atividades[index].toUpperCase().includes(clientes[t].descricao)) {
                     contagem[clientes[t].descricao]++;
                 }
             }
         }
     }
 
-    // console.log('vetor contagem', contagem);
     let maior = clientes[0];
     for (let index = 1; index < clientes.length; index++) {
         if (contagem[clientes[index].descricao] > contagem[maior.descricao]) {
@@ -128,6 +142,9 @@ const buscarCli = (clientes, atividades) => {
             }
         }
 
+    }
+    if (contagem[maior.descricao] == 0) {
+        return null;
     }
     return maior;
 }
@@ -151,17 +168,34 @@ const obterAtividadesDia = (dia, dias, tratatexto = true) => {
     return "";
 }
 
+const sincronizarVarias = async (semanas, apenasnovas = false) => {
+    for (let s = 0; s < semanas.length; s++) {
+        let semana = semanas[s];
+        await sincronizar(semana, apenasnovas);
+    }
+}
 
 const sincronizar = async (semana, apenasnovas = false) => {
     const pessoas = await trello.getCardsFromList(semana.id);
+    console.log('sinc semana', pessoas.length);
+    const pessoascad = await Pessoa.find({});
     const tagscli = await ClienteTag.find({});
     const clientes = await Cliente.find({});
     for (let i = 0; i < pessoas.length; i++) {
         let element = pessoas[i];
-        let pessoa = await Pessoa.findOne({ nome: element.name });
+        let pessoa = await Pessoa.findOne({ nome: tratarNome(element.name) });
         if (!pessoa) {
-            const { name: nome } = element;
-            pessoa = await Pessoa.create({ nome });
+            const nome = tratarNome(element.name);
+            for (let p = 0; p < pessoascad.length; p++) {
+                if (nome.includes(pessoascad[p].nome)) {
+                    pessoa = pessoascad[p];
+                }
+            }
+            if (!pessoa) {
+                if (nome == null || nome == '' || nome.toUpperCase().includes('ONBOARD'))
+                    continue;
+                pessoa = await Pessoa.create({ nome });
+            }
         }
         const checklists = await trello.getChecklistFromCard(element.id);
         // console.log('checklists do ', pessoa.nome, checklists.length);
@@ -190,13 +224,14 @@ const sincronizar = async (semana, apenasnovas = false) => {
                     // atividadestags.push(tratarTexto(checkitems[k].name));
                 }
                 // let clientestr = resumoatividades(atividadestags);
-                // console.log('ATIVIDADES', atividades);
+                //  console.log('ATIVIDADES', atividades);
                 if (clientes != null || clientes.length >= 0) {
                     let cliente = buscarCli(clientes, atividades);
-                    if(cliente){
-                        // console.log('achou cliente direto', cliente);
+                    if (cliente) {
+                        //  console.log('achou cliente direto', cliente);
                         await Alocacao.findByIdAndUpdate(alocacao._id, { atividades, cliente }, { new: true });
-                    }else{
+                    } else {
+                        // console.log('nao achou cliente direto');
                         let clientetag = buscarTag(tagscli, atividades);
                         // let clidados = {descricao: clientestr};
                         // clientetag = await ClienteTag.findOne( {descricao: { $regex: new RegExp("^" + clientestr, "i") }} );
@@ -208,11 +243,9 @@ const sincronizar = async (semana, apenasnovas = false) => {
                         //     clientetag = await ClienteTag.create(clidados);
                         // }
                         // console.log('atividades', atividades);
-                        if(clientetag){
-                            console.log('procurou nas tags e achou', clientetag);
+                        if (clientetag) {
                             await Alocacao.findByIdAndUpdate(alocacao._id, { atividades, cliente: clientetag.cliente }, { new: true });
-                        }else{
-                            console.log('procurou nas tags e não achou', clientetag);
+                        } else {
                             await Alocacao.findByIdAndUpdate(alocacao._id, { atividades }, { new: true });
                         }
                         // console.log('incluindo');
@@ -221,6 +254,27 @@ const sincronizar = async (semana, apenasnovas = false) => {
             }
 
             // semana.dias.push({ dia: checklist.name, atividades });
+        }
+    };
+}
+
+const sincronizarSemanas = async () => {
+    const semanas = await trello.getListsFromBoard('538f872d42bdfee638a6b839');
+    for (let i = 0; i < semanas.length; i++) {
+        let element = semanas[i];
+        const semana = await Semana.findOne({ id: element.id });
+        if (!semana) {
+            const { id, name: nome } = element;
+            const datas = nome.split(" - ");
+            let inicio = null;
+            let fim = null;
+            if (datas.length == 2) {
+                let partes = datas[0].split("/");
+                inicio = new Date(partes[1] + "/" + partes[0] + "/" + partes[2]);
+                partes = datas[1].split("/");
+                fim = new Date(partes[1] + "/" + partes[0] + "/" + partes[2]);
+            }
+            await Semana.create({ id, nome, inicio, fim });
         }
     };
 }
@@ -258,21 +312,74 @@ module.exports = {
         //     return res.send("semana não encontrada");
         // }
         // console.log('semanatrello', semanatrello);
-        let todas = await Semana.find();
-        const semana = await Semana.findOne({ id: req.query.id });
-        await sincronizar(semana, req.query.apenasnovas);
-        return res.send('OK');
+        if (!execution) {
+            try {
+                execution = true;
+                const semana = await Semana.findOne({ id: req.query.id });
+                await sincronizar(semana, req.query.apenasnovas);
+                return res.send('OK');
+            } catch (e) {
+                res.status(500).json({ success: false, error: 'Desculpe! Houve um erro na execução em servidor!' });
+            } finally {
+                execution = false;
+            }
+        } else {
+            res.status(500).json({ success: false, error: 'Desculpe! já tem outra sincronização em curso!' });
+        }
         // const retorno
+    },
+
+    async sincronizarPagina(req, res) {
+        if (!execution) {
+            try {
+                execution = true;
+                let { page = 1, limit = 4 } = req.params;//req.query para parâmetros get
+                page = parseInt(page);
+                limit = parseInt(limit);
+                console.log('page, limit', page, limit);
+                const semanas = await Semana.paginate({}, { page, limit, sort: '-inicio' });
+                await sincronizarVarias(semanas.docs, req.query.apenasnovas);
+                return res.send('OK');
+            } catch (e) {
+                res.status(500).json({ success: false, error: 'Desculpe! Houve um erro na execução em servidor!' });
+            } finally {
+                execution = false;
+            }
+        } else {
+            res.status(500).json({ success: false, error: 'Desculpe! já tem outra sincronização em curso!' });
+        }
     },
 
     async sincronizarTodasAlocacoes(req, res) {
         // console.log('semanatrello', semanatrello);
         const semanas = await Semana.find({});
-        for (let s = 0; s < semanas.length; s++) {
-            let semana = semanas[s];
-            await sincronizar(semana, true);
-        }
+        await sincronizarVarias(semanas, req.query.apenasnovas);
         return res.send('OK');
         // const retorno
-    }
+    },
+
+    async sincronizarcompleto(req, res) {
+        // console.log('semanatrello', semanatrello);
+        if (!execution) {
+            try {
+                execution = true;
+                await sincronizarSemanas();
+                const semanas = await Semana.find({});
+                await sincronizarVarias(semanas, req.query.apenasnovas);
+                return res.send('OK');
+            } catch (e) {
+                res.status(500).json({ success: false, error: 'Desculpe! Houve um erro na execução em servidor!' });
+            } finally {
+                execution = false;
+            }
+        } else {
+            res.status(500).json({ success: false, error: 'Desculpe! já tem outra sincronização em curso!' });
+        }
+        // const retorno
+    },
+
+    async formatar(req, res) {
+        const pessoas = await Pessoa.deleteMany({});
+        return res.json(pessoas);
+    },
 };

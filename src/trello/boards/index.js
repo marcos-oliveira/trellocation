@@ -51,7 +51,7 @@ const tratarTexto = (texto) => {
     if (legenda == '[') {
         legenda = texto.split(' ')[1];
     } else {
-        legenda = legenda.replace('[', '').replace(']', '');
+        legenda = legenda.replace('*', '').replace('[', '').replace(']', '');
     }
     return legenda;
 }
@@ -83,6 +83,7 @@ module.exports = {
 
 async getListsFromBoard(boardId){
     try {
+
         const url = client.urlTrello('boards', boardId, 'lists');
         console.log('sincronizar', url);
         const { data } = await client.get(url);
